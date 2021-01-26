@@ -1,16 +1,19 @@
 # Quitar el comentario de la siguiente línea si no está instalado ggplot2
 # install.packages("ggplot2")
 
-library(ggplot2)
+library(tidyverse) #incluye ggplot y otras
 
 # TODO: Ajustar la ruta según corresponda
 ruta.dataset <- "<DIRECTORIO_DEL_DATASET>/dataset_final.csv"
 df <- read.csv(file = ruta.dataset, header = T)
+#Si se trabaja con un proyecto no es necesario poner la ruta, al final cada persona 
+#tiene su propia ruta y no es reproducible. Esto debería funcionar:
+df <- read.csv("dataset_final.csv")
 
 # Ignorar edades
 ignorar.edades <- c("De 16 a 19 años", "De 65 a 69 años", "70 Y Más Años")
-registrosAEliminar <- which(df$Edad %in% ignorar.edades)
-df <- df[-aEliminar,]
+aEliminar <- which(df$Edad %in% ignorar.edades) #me da vacío
+df <- df[-aEliminar,] 
 
 # Transformar la edad a <<factor>> para ordenar las gráficas
 df$Edad <- factor(df$Edad, levels = c(
@@ -54,13 +57,24 @@ colors.vector <- c(color.hombres, color.mujeres)
 #*              Comparación de tasa de ocupación por edad y sexo              *#
 #******************************************************************************#
 # ******** Diagrama de cajas y bigotes
-p_box_sex <- ggplot(data = df.ratio, aes(x = Edad, y = Ratio)) +
+ggplot(data = df.ratio, aes(x = Edad, y = Ratio)) +
   geom_boxplot(aes(fill = Sexo)) +
-  facet_wrap(~Edad, scales="free") +
-  xlab(NULL) + ylab(NULL) + ggtitle("Tasa de ocupación") +
+  facet_wrap(~Edad, scales="free", ncol = 3) +
+  xlab(NULL) + 
+  ylab(NULL) + 
+  ggtitle("Tasa de ocupación") +
   coord_cartesian(ylim = c(0.4, 1)) +
-  scale_fill_manual(values = colors.vector)
-p_box_sex
+  scale_fill_manual(values = colors.vector) +
+  theme_bw() +
+  theme(axis.text.x = element_blank(),
+        axis.text.y = element_text(size = 16),
+        axis.title = element_text(size = 16),
+        axis.ticks = element_blank(),
+        strip.text = element_text(size = 16),
+        plot.title = element_blank(),
+        legend.title = element_blank(),
+        legend.text = element_text(size = 16))
+
 # ******** Evolución en el tiempo
 # Convertir los trimestres a número para ajustar los valores del eje x:
 trimestres.2010.2019 <- 40
