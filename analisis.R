@@ -1,7 +1,7 @@
 # Quitar el comentario de la siguiente línea si no está instalado ggplot2
 # install.packages("ggplot2")
 
-library(tidyverse) #incluye ggplot y otras
+library(tidyverse) #incluye ggplot2 y otros 
 
 # TODO: Ajustar la ruta según corresponda
 ruta.dataset <- "<DIRECTORIO_DEL_DATASET>/dataset_final.csv"
@@ -12,7 +12,7 @@ df <- read.csv("dataset_final.csv")
 
 # Ignorar edades
 ignorar.edades <- c("De 16 a 19 años", "De 65 a 69 años", "70 Y Más Años")
-aEliminar <- which(df$Edad %in% ignorar.edades) #me da vacío
+aEliminar <- which(df$Edad %in% ignorar.edades) #me daba vacío
 df <- df[-aEliminar,] 
 
 # Transformar la edad a <<factor>> para ordenar las gráficas
@@ -75,6 +75,18 @@ ggplot(data = df.ratio, aes(x = Edad, y = Ratio)) +
         legend.title = element_blank(),
         legend.text = element_text(size = 16))
 
+#******************************************************************************#
+#*              Media, mediana, desviación, ceof. de variación                *#
+#******************************************************************************#
+
+valores <- df.ratio %>% 
+              group_by(Edad, Sexo) %>% 
+              summarise(media = mean(Ratio),
+                        mediana = median(Ratio),
+                        desv = sd(Ratio),
+                        coef.var = desv/media)
+
+
 # ******** Evolución en el tiempo
 # Convertir los trimestres a número para ajustar los valores del eje x:
 trimestres.2010.2019 <- 40
@@ -89,26 +101,48 @@ labels.trimestre <- c("1" = 2010,
                       "25" = 2016,
                       "33" = 2018,
                       "41" = 2020)
-p_line <- ggplot(data = df.ratio, aes(x = TrimestreAsNum, y = Ratio, group = Sexo)) +
+
+ggplot(data = df.ratio, aes(x = TrimestreAsNum, y = Ratio, group = Sexo)) +
   geom_line(aes(color = Sexo))+
   facet_wrap(~Edad, scales="free") +
-  xlab(NULL) + ylab(NULL) + ggtitle("Tasa de ocupación") +
+  xlab(NULL) + 
+  ylab(NULL) + 
+  #ggtitle("Tasa de ocupación") + #Quito esta línea porque debería de ir explicado en el pie de figura
   coord_cartesian(ylim = c(0.4, 1)) +
   scale_color_manual(values = colors.vector) +
   scale_x_discrete(breaks = seq(1, total.trimestres, trimestres.intervalo.size),
-                   labels = labels.trimestre)
-p_line
+                   labels = labels.trimestre) +
+  theme_bw() +
+  theme(axis.text.x = element_text(size = 16),
+        axis.text.y = element_text(size = 16),
+        axis.title = element_text(size = 16),
+        strip.text = element_text(size = 16),
+        plot.title = element_blank(), #elimina el título
+        legend.title = element_blank(),
+        legend.text = element_text(size = 16))
+
 
 #******************************************************************************#
 #*         Comparación de tasa de ocupación de las mujeres por edad           *#
 #******************************************************************************#
 df.mujeres <- df.ratio[df.ratio$Sexo == "Mujeres",]
 # Diagrama de cajas y bigotes
-p_box_m <- ggplot(data = df.mujeres, aes(x=Edad, y = Ratio)) + 
+ggplot(data = df.mujeres, aes(x=Edad, y = Ratio)) + 
   geom_boxplot(fill = color.mujeres) +
   xlab(NULL) + ylab(NULL) + ggtitle("Tasa de ocupación de mujeres")
-p_box_m
 
+#Histograma
+ggplot(df.mujeres, aes(Edad, Ratio)) + 
+  geom_line(fill = color.mujeres) +
+  xlab(NULL) + 
+  ylab(NULL) + 
+  ggtitle("Tasa de ocupación de mujeres") +
+  theme_bw() 
+
+df.mujeres$year <- substr(df.mujeres$Trimestre, 1, 4)
+df.mujeres$year <- as.numeric(df.mujeres$year)
+
+dos_year <- filter(df.mujeres, year %in% c(2010, 2020))
 
 
 # Gráfica de la tasa de ocupación de hombres vs tasa de ocupación de mujeres
