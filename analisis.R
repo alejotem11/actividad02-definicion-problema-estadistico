@@ -133,7 +133,7 @@ ggplot(data = df.mujeres, aes(x=Edad, y = Ratio)) +
 
 #Histograma
 ggplot(df.mujeres, aes(Edad, Ratio)) + 
-  geom_line(fill = color.mujeres) +
+  geom_bar(stat = "identity", fill = color.mujeres) +
   xlab(NULL) + 
   ylab(NULL) + 
   ggtitle("Tasa de ocupación de mujeres") +
